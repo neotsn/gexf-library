@@ -240,15 +240,20 @@ class Gexf
 
     /**
      * @param string $creator
+     *
+     * @return \tsn\Gexf
      */
     public function setCreator($creator)
     {
         $this->creator = self::cleanseString($creator);
+
+        return $this;
     }
 
     /**
      * @param string $edgeType Either GexfEdge::GEXF_EDGE_DIRECTED or GexfEdge::GEXF_EDGE_UNDIRECTED
      *
+     * @return \tsn\Gexf
      * @throws \Exception
      */
     public function setEdgeType($edgeType)
@@ -258,11 +263,14 @@ class Gexf
         } else {
             throw new Exception("Unsupported edge type: $edgeType");
         }
+
+        return $this;
     }
 
     /**
      * @param int $modeEnum Either Gexf::GEXF_MODE_STATIC or Gexf::GEXF_MODE_DYNAMIC
      *
+     * @return \tsn\Gexf
      * @throws \Exception
      */
     public function setMode($modeEnum)
@@ -272,11 +280,14 @@ class Gexf
         } else {
             throw new Exception("Unsupported mode: $modeEnum");
         }
+
+        return $this;
     }
 
     /**
      * @param int $formatEnum Currently only Gexf::GEXF_TIMEFORMAT_DATE
      *
+     * @return \tsn\Gexf
      * @throws \Exception
      */
     public function setTimeFormat($formatEnum)
@@ -286,14 +297,20 @@ class Gexf
         } else {
             throw new Exception("Unsupported time format: $formatEnum");
         }
+
+        return $this;
     }
 
     /**
      * @param string $title
+     *
+     * @return \tsn\Gexf
      */
     public function setTitle($title)
     {
         $this->title = self::cleanseString($title);
+
+        return $this;
     }
 
     /**

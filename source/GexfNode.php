@@ -99,7 +99,7 @@ class GexfNode
      *
      * @return bool
      */
-    public function doesChildExists(GexfNode $child)
+    public function childExists(GexfNode $child)
     {
         return array_key_exists($child->getNodeId(), $this->getNodeChildren());
     }
