@@ -1,6 +1,9 @@
 # gexf-library
 A Gexf PHP Library.
 
+# Note
+This is not ready for prime-time yet. I'm still working on it all, and it's untested until v1.0.
+
 ## Description
 This was created out of necessity to product Node-Maps in the GEXF format for my day-job at [FireScope](https://www.firescope.com). It's a spare-time repository, so any bugs will be addressed as time allows. And I am no expert on GEXF, so the technical support that I can offer is limited. 
 
