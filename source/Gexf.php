@@ -268,7 +268,7 @@ class Gexf
     }
 
     /**
-     * @param int $modeEnum Either Gexf::GEXF_MODE_STATIC or Gexf::GEXF_MODE_DYNAMIC
+     * @param string $modeEnum Either Gexf::GEXF_MODE_STATIC or Gexf::GEXF_MODE_DYNAMIC
      *
      * @return \tsn\Gexf
      * @throws \Exception
