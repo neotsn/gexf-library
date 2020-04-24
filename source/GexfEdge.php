@@ -200,18 +200,26 @@ class GexfEdge
 
     /**
      * @param $kind
+     *
+     * @return \tsn\GexfEdge
      */
     public function setKind($kind)
     {
         $this->kind = Gexf::cleanseString($kind);
+
+        return $this;
     }
 
     /**
      * @param $label
+     *
+     * @return \tsn\GexfEdge
      */
     public function setLabel($label)
     {
         $this->label = Gexf::cleanseString($label);
+
+        return $this;
     }
 
     /**
