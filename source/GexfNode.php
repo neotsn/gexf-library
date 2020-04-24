@@ -2,6 +2,7 @@
 
 namespace tsn;
 
+use Exception;
 use tsn\Traits\GexfColor;
 use tsn\Traits\GexfDates;
 
@@ -43,10 +44,10 @@ class GexfNode
     /**
      * GexfNode constructor.
      *
-     * @param string      $name
-     * @param string|null $idprefix
-     * @param null        $startDate
-     * @param null        $endDate
+     * @param string          $name
+     * @param string|null     $idprefix
+     * @param string|int|null $startDate
+     * @param string|int|null $endDate
      *
      * @throws \Exception
      */
@@ -67,7 +68,7 @@ class GexfNode
      *
      * @throws \Exception
      */
-    public function addNodeAttribute($name, $value, $type = "string", $startDate = null, $endDate = null)
+    public function addNodeAttribute($name, $value, $type = GexfAttribute::TYPE_STRING, $startDate = null, $endDate = null)
     {
         $attribute = new GexfAttribute($name, $value, $type, $startDate, $endDate);
         $this->attributes[$attribute->getAttributeId()] = $attribute;
@@ -119,7 +120,7 @@ class GexfNode
      */
     public function getNodeAttributeValue($attributeName)
     {
-        $fakeAttribute = new GexfAttribute($attributeName, "");
+        $fakeAttribute = new GexfAttribute($attributeName, '');
 
         return (isset($this->attributes[$fakeAttribute->getAttributeId()]))
             ? $this->attributes[$fakeAttribute->getAttributeId()]->getAttributeValue()
@@ -167,10 +168,26 @@ class GexfNode
     }
 
     /**
-     * Generate the set of <attvalue> XML Tags for use in the <edge> tag
+     * @return string
+     */
+    public function getShape()
+    {
+        return $this->shape;
+    }
+
+    /**
+     * @return float
+     */
+    public function getSize()
+    {
+        return $this->size;
+    }
+
+    /**
+     * Generate the <attvalues> XML Tag for use in the <node> tag
      *
-     * @param \tsn\Gexf $Gexf                         Pass in the outer object to spool up the GexfAttributes
-     *                                                for use in building the <attribute> elements
+     * @param \tsn\Gexf $Gexf Pass in the outer object to spool up the GexfAttributes
+     *                        for use in building the <attribute> elements later
      *
      * @return array|string|string[]
      */
@@ -189,14 +206,19 @@ class GexfNode
         ]));
     }
 
+    /**
+     * @param \tsn\Gexf $Gexf
+     *
+     * @return string
+     */
     public function renderNode(Gexf $Gexf)
     {
         return implode(array_filter([
             '<node id="' . $this->getNodeId() . '" label="' . $this->getNodeName() . '" ' . $this->renderStartEndDates() . '>',
             $this->renderColor(),
             ($this->getCoordinates()) ? '<viz:position x="' . $this->getCoordinates()['x'] . '" y="' . $this->getCoordinates()['y'] . '" z="' . $this->getCoordinates()['z'] . '"/>' : '',
-            '',
-            '',
+            '<viz:size value="' . $this->getSize() . '"/>',
+            '<viz:shape value=' . $this->getShape() . '"/>',
             $this->renderAttValues($Gexf),
             $this->renderSpells(),
             // Add this Node's Children: Recursive call to outer object inside of this one
@@ -242,15 +264,13 @@ class GexfNode
     }
 
     /**
-     * @param string|null $idprefix
+     * @param string|null $idPrefix
      *
      * @return \tsn\GexfNode
      */
-    public function setNodeId($idprefix = null)
+    public function setNodeId($idPrefix = null)
     {
-        $this->id = (isset($idprefix))
-            ? $idprefix . md5($this->name)
-            : "n-" . md5($this->name);
+        $this->id = ((isset($idPrefix)) ? $idPrefix : 'n-') . md5($this->name);
 
         return $this;
     }
@@ -263,6 +283,35 @@ class GexfNode
     public function setNodeName($name)
     {
         $this->name = Gexf::cleanseString($name);
+
+        return $this;
+    }
+
+    /**
+     * @param $shapeEnum
+     *
+     * @return \tsn\GexfNode
+     * @throws \Exception
+     */
+    public function setShape($shapeEnum)
+    {
+        if (in_array($shapeEnum, [self::SHAPE_DIAMOND, self::SHAPE_DISC, self::SHAPE_IMAGE, self::SHAPE_SQUARE, self::SHAPE_TRIANGLE])) {
+            $this->shape = $shapeEnum;
+        } else {
+            throw new Exception('Invalid Node Shape provided: ' . $shapeEnum);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param (float) $size
+     *
+     * @return \tsn\GexfNode
+     */
+    public function setSize($size)
+    {
+        $this->size = (float)$size;
 
         return $this;
     }

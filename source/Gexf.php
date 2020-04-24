@@ -29,7 +29,7 @@ class Gexf
     /** @var string */
     private $creator = "ThePizzy.net Labs";
     /** @var string */
-    private $edgeType = GexfEdge::GEXF_EDGE_UNDIRECTED;
+    private $edgeType = GexfEdge::TYPE_UNDIRECTED;
     /** @var string[] */
     private $keywords = [];
     /** @var string */
@@ -253,7 +253,7 @@ class Gexf
      */
     public function setEdgeType($edgeType)
     {
-        if (in_array($edgeType, [GexfEdge::GEXF_EDGE_DIRECTED, GexfEdge::GEXF_EDGE_UNDIRECTED, GexfEdge::GEXF_EDGE_MUTUAL])) {
+        if (in_array($edgeType, [GexfEdge::TYPE_DIRECTED, GexfEdge::TYPE_UNDIRECTED, GexfEdge::TYPE_MUTUAL])) {
             $this->edgeType = $edgeType;
         } else {
             throw new Exception("Unsupported edge type: $edgeType");

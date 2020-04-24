@@ -13,11 +13,11 @@ use tsn\Traits\GexfDates;
 class GexfEdge
 {
     /** @var string From Source to Target */
-    const GEXF_EDGE_DIRECTED = 'directed';
-    /** @var string Just a line between the endpoints */
-    const GEXF_EDGE_UNDIRECTED = 'undirected';
+    const TYPE_DIRECTED = 'directed';
+    /** @var string Just a line between the nodes */
+    const TYPE_UNDIRECTED = 'undirected';
     /** @var string Bidirectional relationship */
-    const GEXF_EDGE_MUTUAL = 'mutual';
+    const TYPE_MUTUAL = 'mutual';
 
     const SHAPE_DASHED = 'dashed';
     const SHAPE_DOTTED = 'dotted';
@@ -28,7 +28,7 @@ class GexfEdge
     use GexfColor;
 
     /** @var string */
-    private $edgeType = 'undirected';
+    private $edgeType = self::TYPE_UNDIRECTED;
     /** @var string */
     private $id = '';
     /** @var string Another level of differentiation for Edges */
@@ -56,10 +56,10 @@ class GexfEdge
      *
      * @param \tsn\GexfNode $sourceNode
      * @param \tsn\GexfNode $targetNode
-     * @param int                                   $weight
-     * @param string                                $edgeType
-     * @param null                                  $startDate
-     * @param null                                  $endDate
+     * @param int           $weight
+     * @param string        $edgeType
+     * @param null          $startDate
+     * @param null          $endDate
      *
      * @throws \Exception
      */
@@ -182,21 +182,27 @@ class GexfEdge
         return $this->label;
     }
 
+    /**
+     * @return string
+     */
     public function getShape()
     {
         return $this->shape;
     }
 
+    /**
+     * @return float
+     */
     public function getThickness()
     {
         return $this->thickness;
     }
 
     /**
-     * Generate the set of <attvalue> XML Tags for use in the <edge> tag
+     * Generate the <attvalues> XML Tag for use in the <edge> tag
      *
      * @param \tsn\Gexf $Gexf Pass in the outer object to spool up the GexfAttributes
-     *                                                for use in building the <attribute> elements
+     *                        for use in building the <attribute> elements
      *
      * @return array|string|string[]
      */
@@ -219,7 +225,7 @@ class GexfEdge
      * Generate the <edge> XML Tag string for use in the <edges> tag.
      *
      * @param \tsn\Gexf $Gexf Pass in the outer object to spool up the GexfAttributes
-     *                                                for use in building the <attribute> elements
+     *                        for use in building the <attribute> elements
      *
      * @return string
      */
@@ -270,8 +276,8 @@ class GexfEdge
     public function setEdgeId()
     {
         $sort = [$this->getEdgeSourceId(), $this->getEdgeTargetId()];
-        if ($this->getEdgeType() == 'undirected')   // if undirected all concatenations need to be result in same id
-        {
+        if ($this->getEdgeType() == GexfEdge::TYPE_UNDIRECTED) {
+            // if undirected all concatenations need to be result in same id
             sort($sort);
         }
         $this->id = 'e-' . implode('', $sort);

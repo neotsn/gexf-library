@@ -142,6 +142,9 @@ class GexfAttribute
         return $this->value;
     }
 
+    /**
+     * @return int|string|null
+     */
     public function getListStringDefault()
     {
         return $this->listStringDefault;
@@ -256,6 +259,11 @@ class GexfAttribute
         return $this;
     }
 
+    /**
+     * @param $options
+     *
+     * @return array|false|string[]
+     */
     private static function processListStringOptions($options)
     {
         if (!is_array($options)) {
