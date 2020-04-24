@@ -1,0 +1,23 @@
+{
+  "name": "neotsn/gexf-library",
+  "description": "A Gexf Library for PHP",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Neotsn",
+      "email": "gexf-library@the-spot.net"
+    }
+  ],
+  "minimum-stability": "dev",
+  "autoload": {
+    "psr-4": {
+      "tsn\\": "source/"
+    }
+  },
+  "repositories": {
+    "type": "vcs",
+    "url": "https://github.com/neotsn/gexf-library"
+  },
+  "require": {}
+}
