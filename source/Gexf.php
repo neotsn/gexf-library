@@ -73,28 +73,22 @@ class Gexf
     }
 
     /**
-     * @param \tsn\GexfNode $source
-     * @param \tsn\GexfNode $target
-     * @param int           $weight
-     * @param null          $startDate
-     * @param null          $endDate
+     * @param \tsn\GexfEdge $GexfEdge
      *
      * @return string
      * @throws \Exception
      */
-    public function addEdge(GexfNode $source, GexfNode $target, $weight = 1, $startDate = null, $endDate = null)
+    public function addEdge(GexfEdge $GexfEdge)
     {
-        $edge = new GexfEdge($source, $target, $weight, $this->edgeType, $startDate, $endDate);
-
         // if edge did not exist, add to list
-        if (array_key_exists($edge->getEdgeId(), $this->edgeObjects) == false) {
-            $this->edgeObjects[$edge->getEdgeId()] = $edge;
+        if (array_key_exists($GexfEdge->getId(), $this->edgeObjects) == false) {
+            $this->edgeObjects[$GexfEdge->getId()] = $GexfEdge;
         } else {
             // else add weight to existing edge
-            $this->edgeObjects[$edge->getEdgeId()]->addToEdgeWeight($weight);
+            $this->edgeObjects[$GexfEdge->getId()]->addToWeight($GexfEdge->getWeight());
         }
 
-        return $edge->getEdgeId();
+        return $GexfEdge->getId();
     }
 
     /**
@@ -104,24 +98,21 @@ class Gexf
      */
     public function addEdgeAttribute(GexfAttribute $GexfAttribute)
     {
-        if (array_key_exists($GexfAttribute->getAttributeId(), $this->getEdgeAttributeObjects()) === false) {
-            $this->edgeAttributeObjects[$GexfAttribute->getAttributeId()] = $GexfAttribute;
+        if (array_key_exists($GexfAttribute->getId(), $this->getEdgeAttributeObjects()) === false) {
+            $this->edgeAttributeObjects[$GexfAttribute->getId()] = $GexfAttribute;
         }
     }
 
     /**
-     * @param string $edgeId
-     * @param string $startDate Date string YYYY-MM-DD format
-     * @param string $endDate   Date string YYYY-MM-DD format
-     *
-     * @throws \Exception
+     * @param \tsn\GexfEdge  $GexfEdge
+     * @param \tsn\GexfSpell $GexfSpell
      */
-    public function addEdgeSpell($edgeId, $startDate, $endDate)
+    public function addEdgeSpell(GexfEdge $GexfEdge, GexfSpell $GexfSpell)
     {
-        if (array_key_exists($edgeId, $this->edgeObjects) == false) {
+        if (array_key_exists($GexfEdge->getId(), $this->edgeObjects) == false) {
             die('make an edge before you add a spell');
         }
-        $this->edgeObjects[$edgeId]->addEdgeSpell($startDate, $endDate);
+        $this->edgeObjects[$GexfEdge->getId()]->addSpell($GexfSpell);
     }
 
     /**
@@ -137,17 +128,17 @@ class Gexf
     }
 
     /**
-     * @param \tsn\GexfNode $node
+     * @param \tsn\GexfNode $GexfNode
      *
      * @return string
      */
-    public function addNode(GexfNode $node)
+    public function addNode(GexfNode $GexfNode)
     {
-        if (!$this->nodeExists($node)) {
-            $this->nodeObjects[$node->getNodeId()] = $node;
+        if (!$this->nodeExists($GexfNode)) {
+            $this->nodeObjects[$GexfNode->getId()] = $GexfNode;
         }
 
-        return $node->getNodeId();
+        return $GexfNode->getId();
     }
 
     /**
@@ -157,8 +148,8 @@ class Gexf
      */
     public function addNodeAttribute(GexfAttribute $GexfAttribute)
     {
-        if (array_key_exists($GexfAttribute->getAttributeId(), $this->getNodeAttributeObjects()) === false) {
-            $this->nodeAttributeObjects[$GexfAttribute->getAttributeId()] = $GexfAttribute;
+        if (array_key_exists($GexfAttribute->getId(), $this->getNodeAttributeObjects()) === false) {
+            $this->nodeAttributeObjects[$GexfAttribute->getId()] = $GexfAttribute;
         }
     }
 
@@ -179,13 +170,13 @@ class Gexf
     }
 
     /**
-     * @param $node
+     * @param \tsn\GexfNode $GexfNode
      *
      * @return bool
      */
-    public function nodeExists(GexfNode $node)
+    public function nodeExists(GexfNode $GexfNode)
     {
-        return array_key_exists($node->getNodeId(), $this->nodeObjects);
+        return array_key_exists($GexfNode->getId(), $this->nodeObjects);
     }
 
     /**
@@ -226,7 +217,7 @@ class Gexf
      *
      * @return string
      */
-    public function renderNodes($nodeObjects)
+    public function renderNodes(array $nodeObjects)
     {
         return implode([
             '<nodes>',
@@ -285,7 +276,7 @@ class Gexf
     }
 
     /**
-     * @param int $formatEnum Currently only Gexf::GEXF_TIMEFORMAT_DATE
+     * @param string $formatEnum Currently only Gexf::GEXF_TIMEFORMAT_DATE
      *
      * @return \tsn\Gexf
      * @throws \Exception

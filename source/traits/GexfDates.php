@@ -11,7 +11,6 @@ use Exception;
  */
 trait GexfDates
 {
-
     /** @var int|string Date in integer or string format YYYY-MM-DD */
     private $endDate;
     /** @var int|string Date in integer or string format YYYY-MM-DD */

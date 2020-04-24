@@ -70,10 +70,10 @@ class GexfAttribute
     public function __construct($name, $value, $type = self::TYPE_STRING, $startDate = null, $endDate = null)
     {
         $this
-            ->setAttributeName($name)
-            ->setAttributeId()
-            ->setAttributeType($type)
-            ->setAttributeValue($value)
+            ->setName($name)
+            ->setId()
+            ->setType($type)
+            ->setValue($value)
             ->setStartDate($startDate)
             ->setEndDate($endDate);
     }
@@ -85,7 +85,6 @@ class GexfAttribute
      */
     public function addListStringOptions($options)
     {
-
         $options = self::processListStringOptions($options);
 
         if (is_array($options)) {
@@ -105,7 +104,7 @@ class GexfAttribute
     public function asListStringType($options, $default = null)
     {
         return $this
-            ->setAttributeType(self::TYPE_LISTSTRING)
+            ->setType(self::TYPE_LISTSTRING)
             ->addListStringOptions($options)
             ->setListStringDefault($default);
     }
@@ -113,33 +112,9 @@ class GexfAttribute
     /**
      * @return string
      */
-    public function getAttributeId()
+    public function getId()
     {
         return $this->id;
-    }
-
-    /**
-     * @return string
-     */
-    public function getAttributeName()
-    {
-        return $this->name;
-    }
-
-    /**
-     * @return string
-     */
-    public function getAttributeType()
-    {
-        return $this->type;
-    }
-
-    /**
-     * @return string
-     */
-    public function getAttributeValue()
-    {
-        return $this->value;
     }
 
     /**
@@ -159,12 +134,36 @@ class GexfAttribute
     }
 
     /**
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->name;
+    }
+
+    /**
+     * @return string
+     */
+    public function getType()
+    {
+        return $this->type;
+    }
+
+    /**
+     * @return string
+     */
+    public function getValue()
+    {
+        return $this->value;
+    }
+
+    /**
      * Generate the <attvalue> XML string for this Attribute to be used after an <edge> & <node> tag.
      * @return string
      */
     public function renderAttValue()
     {
-        return '<attvalue for="' . $this->getAttributeId() . '" value="' . $this->getAttributeValue() . '" ' . $this->renderStartEndDates() . '/>';
+        return '<attvalue for="' . $this->getId() . '" value="' . $this->getValue() . '" ' . $this->renderStartEndDates() . '/>';
     }
 
     /**
@@ -173,70 +172,23 @@ class GexfAttribute
      */
     public function renderAttribute()
     {
-        return ($this->getAttributeType() == self::TYPE_LISTSTRING)
+        return ($this->getType() == self::TYPE_LISTSTRING)
             ? implode(array_filter([
-                '<attribute id="' . $this->getAttributeId() . '" title="' . $this->getAttributeName() . '" type="' . $this->getAttributeType() . '">',
+                '<attribute id="' . $this->getId() . '" title="' . $this->getName() . '" type="' . $this->getType() . '">',
                 ($this->getListStringDefault()) ? '<default>' . $this->getListStringDefault() . '</default>' : null,
                 '<options>' . implode(self::DEFAULT_DELIMITER, $this->getListStringOptions()) . '</options>',
                 '</attribute>',
             ]))
-            : '<attribute id="' . $this->getAttributeId() . '" title="' . $this->getAttributeName() . '" type="' . $this->getAttributeType() . '"/>';
+            : '<attribute id="' . $this->getId() . '" title="' . $this->getName() . '" type="' . $this->getType() . '"/>';
     }
 
     /**
      * Sets the attribute ID to a hash of the name
      * @return \tsn\GexfAttribute
      */
-    public function setAttributeId()
+    public function setId()
     {
-        $this->id = "a-" . md5($this->getAttributeName());
-
-        return $this;
-    }
-
-    /**
-     * @param string $name
-     *
-     * @return \tsn\GexfAttribute
-     */
-    public function setAttributeName($name)
-    {
-        $this->name = Gexf::cleanseString($name);
-
-        return $this;
-    }
-
-    /**
-     * @param $typeEnum
-     *
-     * @return \tsn\GexfAttribute
-     * @throws \Exception
-     */
-    public function setAttributeType($typeEnum)
-    {
-        if (in_array($typeEnum, [self::TYPE_BOOLEAN, self::TYPE_DOUBLE, self::TYPE_FLOAT, self::TYPE_INTEGER, self::TYPE_LISTSTRING, self::TYPE_LONG, self::TYPE_STRING, self::TYPE_URI])) {
-            $this->type = $typeEnum;
-        } else {
-            throw new Exception('Invalid Attribute Type provided: ' . $typeEnum);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param string $value
-     *
-     * @return \tsn\GexfAttribute
-     */
-    public function setAttributeValue($value)
-    {
-        if ($this->getAttributeType() == self::TYPE_LISTSTRING) {
-            $value = implode(self::DEFAULT_DELIMITER, self::processListStringOptions($value));
-        } else {
-            $value = Gexf::cleanseString($value);
-        }
-
-        $this->value = $value;
+        $this->id = "a-" . md5($this->getName());
 
         return $this;
     }
@@ -255,6 +207,53 @@ class GexfAttribute
         } else {
             throw new Exception('Default List String Value not available in Options: ' . $default);
         }
+
+        return $this;
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return \tsn\GexfAttribute
+     */
+    public function setName($name)
+    {
+        $this->name = Gexf::cleanseString($name);
+
+        return $this;
+    }
+
+    /**
+     * @param $typeEnum
+     *
+     * @return \tsn\GexfAttribute
+     * @throws \Exception
+     */
+    public function setType($typeEnum)
+    {
+        if (in_array($typeEnum, [self::TYPE_BOOLEAN, self::TYPE_DOUBLE, self::TYPE_FLOAT, self::TYPE_INTEGER, self::TYPE_LISTSTRING, self::TYPE_LONG, self::TYPE_STRING, self::TYPE_URI])) {
+            $this->type = $typeEnum;
+        } else {
+            throw new Exception('Invalid Attribute Type provided: ' . $typeEnum);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param string $value
+     *
+     * @return \tsn\GexfAttribute
+     */
+    public function setValue($value)
+    {
+        if ($this->getType() == self::TYPE_LISTSTRING) {
+            $value = implode(self::DEFAULT_DELIMITER, self::processListStringOptions($value));
+        } else {
+            $value = Gexf::cleanseString($value);
+        }
+
+        $this->value = $value;
 
         return $this;
     }

@@ -30,13 +30,13 @@ class GexfSpell
             ->setStartDate($startDate)
             ->setEndDate($endDate)
             // After start/end defined
-            ->setSpellId();
+            ->setId();
     }
 
     /**
      * @return mixed
      */
-    public function getSpellId()
+    public function getId()
     {
         return $this->id;
     }
@@ -54,7 +54,7 @@ class GexfSpell
      * Set the spell id
      * @return \tsn\GexfSpell
      */
-    public function setSpellId()
+    public function setId()
     {
         $this->id = $this->getStartDate() . "-" . $this->getEndDate();
 

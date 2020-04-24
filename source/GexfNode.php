@@ -4,6 +4,7 @@ namespace tsn;
 
 use Exception;
 use tsn\Traits\GexfColor;
+use tsn\traits\GexfCommonInnerElements;
 use tsn\Traits\GexfDates;
 
 /**
@@ -20,7 +21,10 @@ class GexfNode
 
     use GexfDates;
     use GexfColor;
+    use GexfCommonInnerElements;
 
+    /** @var float[] Coordinates: x, y, z (height, distance from 0-plane) */
+    private $coords = [];
     /** @var string */
     private $id = "";
     /** @var string Only if shape='image */
@@ -31,13 +35,7 @@ class GexfNode
     private $shape = 'disc';
     /** @var float A scale, non-negative float. 1.0 Default; 2.0 is 2x of 1.0 size. */
     private $size = 1.0;
-    /** @var float[] Coordinates: x, y, z (height, distance from 0-plane) */
-    private $coords = [];
 
-    /** @var \tsn\GexfAttribute[] Keyed by Attribute ID */
-    private $attributes = [];
-    /** @var \tsn\GexfSpell[] Keyed by Spell ID */
-    private $spells = [];
     /** @var \tsn\GexfNode[] */
     private $children = [];
 
@@ -45,63 +43,48 @@ class GexfNode
      * GexfNode constructor.
      *
      * @param string          $name
-     * @param string|null     $idprefix
+     * @param string|null     $idPrefix
      * @param string|int|null $startDate
      * @param string|int|null $endDate
      *
      * @throws \Exception
      */
-    public function __construct($name, $idprefix = null, $startDate = null, $endDate = null)
+    public function __construct($name, $idPrefix = null, $startDate = null, $endDate = null)
     {
-        $this->setNodeName($name);
-        $this->setNodeId($idprefix);
+        $this->setName($name);
+        $this->setId($idPrefix);
         $this->setStartDate($startDate);
         $this->setEndDate($endDate);
     }
 
     /**
-     * @param        $name
-     * @param        $value
-     * @param string $type
-     * @param null   $startDate
-     * @param null   $endDate
+     * @param \tsn\GexfNode $GexfNode
      *
-     * @throws \Exception
+     * @return \tsn\GexfNode
      */
-    public function addNodeAttribute($name, $value, $type = GexfAttribute::TYPE_STRING, $startDate = null, $endDate = null)
+    public function addChildNode(GexfNode $GexfNode)
     {
-        $attribute = new GexfAttribute($name, $value, $type, $startDate, $endDate);
-        $this->attributes[$attribute->getAttributeId()] = $attribute;
+        $this->children[$GexfNode->getId()] = $GexfNode;
+
+        return $this;
     }
 
     /**
-     * @param \tsn\GexfNode $node
-     */
-    public function addNodeChild(GexfNode $node)
-    {
-        $this->children[$node->getNodeId()] = $node;
-    }
-
-    /**
-     * @param $start
-     * @param $end
-     *
-     * @throws \Exception
-     */
-    public function addNodeSpell($start, $end)
-    {
-        $spell = new GexfSpell($start, $end);
-        $this->spells[$spell->getSpellId()] = $spell;
-    }
-
-    /**
-     * @param $child
+     * @param $ChildGexfNode
      *
      * @return bool
      */
-    public function childExists(GexfNode $child)
+    public function childExists(GexfNode $ChildGexfNode)
     {
-        return array_key_exists($child->getNodeId(), $this->getNodeChildren());
+        return array_key_exists($ChildGexfNode->getId(), $this->getChildNodes());
+    }
+
+    /**
+     * @return array
+     */
+    public function getChildNodes()
+    {
+        return $this->children;
     }
 
     /**
@@ -113,40 +96,9 @@ class GexfNode
     }
 
     /**
-     * @param $attributeName
-     *
-     * @return bool|string
-     * @throws \Exception
-     */
-    public function getNodeAttributeValue($attributeName)
-    {
-        $fakeAttribute = new GexfAttribute($attributeName, '');
-
-        return (isset($this->attributes[$fakeAttribute->getAttributeId()]))
-            ? $this->attributes[$fakeAttribute->getAttributeId()]->getAttributeValue()
-            : false;
-    }
-
-    /**
-     * @return \tsn\GexfAttribute[]
-     */
-    public function getNodeAttributes()
-    {
-        return $this->attributes;
-    }
-
-    /**
-     * @return array
-     */
-    public function getNodeChildren()
-    {
-        return $this->children;
-    }
-
-    /**
      * @return string
      */
-    public function getNodeId()
+    public function getId()
     {
         return $this->id;
     }
@@ -154,17 +106,9 @@ class GexfNode
     /**
      * @return string
      */
-    public function getNodeName()
+    public function getName()
     {
         return $this->name;
-    }
-
-    /**
-     * @return \tsn\GexfSpell[]
-     */
-    public function getNodeSpells()
-    {
-        return $this->spells;
     }
 
     /**
@@ -184,29 +128,6 @@ class GexfNode
     }
 
     /**
-     * Generate the <attvalues> XML Tag for use in the <node> tag
-     *
-     * @param \tsn\Gexf $Gexf Pass in the outer object to spool up the GexfAttributes
-     *                        for use in building the <attribute> elements later
-     *
-     * @return array|string|string[]
-     */
-    public function renderAttValues(Gexf &$Gexf)
-    {
-        return implode(array_filter([
-            '<attvalues>',
-            array_map(function ($GexfAttribute) use (&$Gexf) {
-                // Add it to the list for later
-                $Gexf->addNodeAttribute($GexfAttribute);
-
-                // Generate the XML it into the Edge
-                return $GexfAttribute->renderAttValue();
-            }, $this->getNodeAttributes()),
-            '</attvalues>',
-        ]));
-    }
-
-    /**
      * @param \tsn\Gexf $Gexf
      *
      * @return string
@@ -214,7 +135,7 @@ class GexfNode
     public function renderNode(Gexf $Gexf)
     {
         return implode(array_filter([
-            '<node id="' . $this->getNodeId() . '" label="' . $this->getNodeName() . '" ' . $this->renderStartEndDates() . '>',
+            '<node id="' . $this->getId() . '" label="' . $this->getName() . '" ' . $this->renderStartEndDates() . '>',
             $this->renderColor(),
             ($this->getCoordinates()) ? '<viz:position x="' . $this->getCoordinates()['x'] . '" y="' . $this->getCoordinates()['y'] . '" z="' . $this->getCoordinates()['z'] . '"/>' : '',
             '<viz:size value="' . $this->getSize() . '"/>',
@@ -222,33 +143,15 @@ class GexfNode
             $this->renderAttValues($Gexf),
             $this->renderSpells(),
             // Add this Node's Children: Recursive call to outer object inside of this one
-            $Gexf->renderNodes($this->getNodeChildren()),
+            $Gexf->renderNodes($this->getChildNodes()),
             '</node>',
         ]));
     }
 
     /**
-     * Generate the <spells> XML Tag for use in the <node> tag
-     * Defines the times during which this Node lives.
-     * @return string
-     */
-    public function renderSpells()
-    {
-        return (count($this->getNodeSpells()))
-            ? implode([
-                '<spells>',
-                implode(array_map(function (GexfSpell $GexfSpell) {
-                    return $GexfSpell->render();
-                }, $this->getNodeSpells())),
-                '</spells>',
-            ])
-            : '';
-    }
-
-    /**
-     * @param float $x
-     * @param float $y
-     * @param float $z
+     * @param float $x Left-right positioning
+     * @param float $y Top-bottom positioning
+     * @param float $z Up-Down positioning: A "height" off the base XY-plane
      *
      * @return \tsn\GexfNode
      */
@@ -268,7 +171,7 @@ class GexfNode
      *
      * @return \tsn\GexfNode
      */
-    public function setNodeId($idPrefix = null)
+    public function setId($idPrefix = null)
     {
         $this->id = ((isset($idPrefix)) ? $idPrefix : 'n-') . md5($this->name);
 
@@ -280,7 +183,7 @@ class GexfNode
      *
      * @return \tsn\GexfNode
      */
-    public function setNodeName($name)
+    public function setName($name)
     {
         $this->name = Gexf::cleanseString($name);
 
@@ -288,7 +191,7 @@ class GexfNode
     }
 
     /**
-     * @param $shapeEnum
+     * @param string $shapeEnum
      *
      * @return \tsn\GexfNode
      * @throws \Exception
@@ -305,7 +208,7 @@ class GexfNode
     }
 
     /**
-     * @param (float) $size
+     * @param float $size
      *
      * @return \tsn\GexfNode
      */

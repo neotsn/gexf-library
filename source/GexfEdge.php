@@ -4,6 +4,7 @@ namespace tsn;
 
 use Exception;
 use tsn\Traits\GexfColor;
+use tsn\traits\GexfCommonInnerElements;
 use tsn\Traits\GexfDates;
 
 /**
@@ -26,6 +27,7 @@ class GexfEdge
 
     use GexfDates;
     use GexfColor;
+    use GexfCommonInnerElements;
 
     /** @var string */
     private $edgeType = self::TYPE_UNDIRECTED;
@@ -46,11 +48,6 @@ class GexfEdge
     /** @var int */
     private $weight = 1;
 
-    /** @var \tsn\GexfAttribute[] */
-    private $attributes = [];
-    /** @var \tsn\GexfSpell[] */
-    private $spells = [];
-
     /**
      * GexfEdge constructor.
      *
@@ -65,105 +62,30 @@ class GexfEdge
      */
     public function __construct(GexfNode $sourceNode, GexfNode $targetNode, $weight, $edgeType, $startDate = null, $endDate = null)
     {
-        $this->setEdgeSourceId($sourceNode);
-        $this->setEdgeTargetId($targetNode);
-        $this->setEdgeWeight($weight);
-        $this->setEdgeType($edgeType);
-        $this->setEdgeId();
+        $this->setSourceId($sourceNode);
+        $this->setTargetId($targetNode);
+        $this->setWeight($weight);
+        $this->setType($edgeType);
+        $this->setId();
 
         $this->setStartDate($startDate);
         $this->setEndDate($endDate);
     }
 
     /**
-     * @param string $name
-     * @param string $value
-     * @param string $type
-     * @param null   $startDate
-     * @param null   $endDate
-     *
-     * @throws \Exception
-     */
-    public function addEdgeAttribute($name, $value, $type = GexfAttribute::TYPE_STRING, $startDate = null, $endDate = null)
-    {
-        $attribute = new GexfAttribute($name, $value, $type, $startDate, $endDate);
-        $this->attributes[$attribute->getAttributeId()] = $attribute;
-    }
-
-    /**
-     * @param string $startDate Date formatted as YYYY-MM-DD
-     * @param string $endDate   Date formatted as YYYY-MM-DD
-     *
-     * @throws \Exception
-     */
-    public function addEdgeSpell($startDate, $endDate)
-    {
-        $spell = new GexfSpell($startDate, $endDate);
-        $this->spells[$spell->getSpellId()] = $spell;
-    }
-
-    /**
      * @param int $weight
      */
-    public function addToEdgeWeight($weight)
+    public function addToWeight($weight)
     {
         $this->weight += $weight;
     }
 
     /**
-     * @return \tsn\GexfAttribute[]
-     */
-    public function getEdgeAttributes()
-    {
-        return $this->attributes;
-    }
-
-    /**
      * @return string
      */
-    public function getEdgeId()
+    public function getId()
     {
         return $this->id;
-    }
-
-    /**
-     * @return string
-     */
-    public function getEdgeSourceId()
-    {
-        return $this->sourceId;
-    }
-
-    /**
-     * @return \tsn\GexfSpell[]
-     */
-    public function getEdgeSpells()
-    {
-        return $this->spells;
-    }
-
-    /**
-     * @return string
-     */
-    public function getEdgeTargetId()
-    {
-        return $this->targetId;
-    }
-
-    /**
-     * @return string
-     */
-    public function getEdgeType()
-    {
-        return $this->edgeType;
-    }
-
-    /**
-     * @return int
-     */
-    public function getEdgeWeight()
-    {
-        return $this->weight;
     }
 
     /**
@@ -191,6 +113,22 @@ class GexfEdge
     }
 
     /**
+     * @return string
+     */
+    public function getSourceId()
+    {
+        return $this->sourceId;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTargetId()
+    {
+        return $this->targetId;
+    }
+
+    /**
      * @return float
      */
     public function getThickness()
@@ -199,26 +137,19 @@ class GexfEdge
     }
 
     /**
-     * Generate the <attvalues> XML Tag for use in the <edge> tag
-     *
-     * @param \tsn\Gexf $Gexf Pass in the outer object to spool up the GexfAttributes
-     *                        for use in building the <attribute> elements
-     *
-     * @return array|string|string[]
+     * @return string
      */
-    public function renderAttValues(Gexf &$Gexf)
+    public function getType()
     {
-        return implode(array_filter([
-            '<attvalues>',
-            array_map(function ($GexfAttribute) use (&$Gexf) {
-                // Add it to the list for later
-                $Gexf->addEdgeAttribute($GexfAttribute);
+        return $this->edgeType;
+    }
 
-                // Generate the XML it into the Edge
-                return $GexfAttribute->renderAttValue();
-            }, $this->getEdgeAttributes()),
-            '</attvalues>',
-        ]));
+    /**
+     * @return int
+     */
+    public function getWeight()
+    {
+        return $this->weight;
     }
 
     /**
@@ -233,10 +164,10 @@ class GexfEdge
     {
         return implode([
             '<edge ' . implode(' ', array_filter([
-                'id="' . $this->getEdgeId() . '"',
-                'source="' . $this->getEdgeSourceId() . '"',
-                'target="' . $this->getEdgeTargetId() . '"',
-                'weight="' . $this->getEdgeWeight() . '"',
+                'id="' . $this->getId() . '"',
+                'source="' . $this->getSourceId() . '"',
+                'target="' . $this->getTargetId() . '"',
+                'weight="' . $this->getWeight() . '"',
                 $this->renderStartEndDates(),
                 // Optional properties
                 ($this->getLabel()) ? 'label="' . $this->getLabel() . '"' : null,
@@ -252,83 +183,17 @@ class GexfEdge
     }
 
     /**
-     * Generate the <spells> XML Tag for use in the <edge> tag
-     * Defines the times during which this edge lives.
-     * @return string
-     */
-    public function renderSpells()
-    {
-        return (count($this->getEdgeSpells()))
-            ? implode([
-                '<spells>',
-                implode(array_map(function (GexfSpell $GexfSpell) {
-                    return $GexfSpell->render();
-                }, $this->getEdgeSpells())),
-                '</spells>',
-            ])
-            : '';
-    }
-
-    /**
      * Set the edge ID based on the node ids and the type
      * @return \tsn\GexfEdge
      */
-    public function setEdgeId()
+    public function setId()
     {
-        $sort = [$this->getEdgeSourceId(), $this->getEdgeTargetId()];
-        if ($this->getEdgeType() == GexfEdge::TYPE_UNDIRECTED) {
+        $sort = [$this->getSourceId(), $this->getTargetId()];
+        if ($this->getType() == GexfEdge::TYPE_UNDIRECTED) {
             // if undirected all concatenations need to be result in same id
             sort($sort);
         }
         $this->id = 'e-' . implode('', $sort);
-
-        return $this;
-    }
-
-    /**
-     * @param \tsn\GexfNode $sourceNode
-     *
-     * @return \tsn\GexfEdge
-     */
-    public function setEdgeSourceId(GexfNode $sourceNode)
-    {
-        $this->sourceId = $sourceNode->getNodeId();
-
-        return $this;
-    }
-
-    /**
-     * @param \tsn\GexfNode $targetNode
-     *
-     * @return \tsn\GexfEdge
-     */
-    public function setEdgeTargetId(GexfNode $targetNode)
-    {
-        $this->targetId = $targetNode->getNodeId();
-
-        return $this;
-    }
-
-    /**
-     * @param $edgeType
-     *
-     * @return \tsn\GexfEdge
-     */
-    public function setEdgeType($edgeType)
-    {
-        $this->edgeType = $edgeType;
-
-        return $this;
-    }
-
-    /**
-     * @param $weight
-     *
-     * @return \tsn\GexfEdge
-     */
-    public function setEdgeWeight($weight)
-    {
-        $this->weight = $weight;
 
         return $this;
     }
@@ -367,6 +232,30 @@ class GexfEdge
     }
 
     /**
+     * @param \tsn\GexfNode $sourceNode
+     *
+     * @return \tsn\GexfEdge
+     */
+    public function setSourceId(GexfNode $sourceNode)
+    {
+        $this->sourceId = $sourceNode->getId();
+
+        return $this;
+    }
+
+    /**
+     * @param \tsn\GexfNode $targetNode
+     *
+     * @return \tsn\GexfEdge
+     */
+    public function setTargetId(GexfNode $targetNode)
+    {
+        $this->targetId = $targetNode->getId();
+
+        return $this;
+    }
+
+    /**
      * @param float $thickness
      *
      * @return \tsn\GexfEdge
@@ -374,6 +263,30 @@ class GexfEdge
     public function setThickness($thickness = 1.0)
     {
         $this->thickness = (float)$thickness;
+
+        return $this;
+    }
+
+    /**
+     * @param $edgeType
+     *
+     * @return \tsn\GexfEdge
+     */
+    public function setType($edgeType)
+    {
+        $this->edgeType = $edgeType;
+
+        return $this;
+    }
+
+    /**
+     * @param $weight
+     *
+     * @return \tsn\GexfEdge
+     */
+    public function setWeight($weight)
+    {
+        $this->weight = $weight;
 
         return $this;
     }
