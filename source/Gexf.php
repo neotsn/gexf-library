@@ -162,6 +162,23 @@ class Gexf
     }
 
     /**
+     * If a node already exists for the ID, retrieve it
+     *
+     * @param \tsn\GexfNode $GexfNode
+     *
+     * @return \tsn\GexfNode
+     */
+    public function getNode(GexfNode $GexfNode)
+    {
+
+        if ($this->nodeExists($GexfNode)) {
+            $GexfNode = $this->nodeObjects[$GexfNode->getId()];
+        }
+
+        return $GexfNode;
+    }
+
+    /**
      * @return \tsn\GexfAttribute[]
      */
     public function getNodeAttributeObjects()
