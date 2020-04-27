@@ -3,7 +3,7 @@
 namespace tsn;
 
 use Exception;
-use tsn\Traits\GexfDates;
+use tsn\traits\GexfDates;
 
 /**
  * Class GexfAttribute

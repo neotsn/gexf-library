@@ -2,7 +2,7 @@
 
 namespace tsn;
 
-use tsn\Traits\GexfDates;
+use tsn\traits\GexfDates;
 
 /**
  * Class GexfSpell

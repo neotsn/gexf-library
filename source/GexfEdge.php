@@ -3,9 +3,9 @@
 namespace tsn;
 
 use Exception;
-use tsn\Traits\GexfColor;
+use tsn\traits\GexfColor;
 use tsn\traits\GexfCommonInnerElements;
-use tsn\Traits\GexfDates;
+use tsn\traits\GexfDates;
 
 /**
  * Class GexfEdge

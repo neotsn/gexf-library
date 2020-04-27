@@ -1,13 +1,13 @@
 <?php
 
-namespace tsn\Traits;
+namespace tsn\traits;
 
 use Exception;
 
 /**
  * Trait GexfDates
  * Handles the common functionality for all elements in a Gexf XML object
- * @package tsn\Traits
+ * @package tsn\traits
  */
 trait GexfDates
 {

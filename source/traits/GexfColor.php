@@ -1,11 +1,11 @@
 <?php
 
-namespace tsn\Traits;
+namespace tsn\traits;
 
 /**
  * Trait GexfColor
  * Handles the color viz element for nodes and edges
- * @package tsn\Traits
+ * @package tsn\traits
  */
 trait GexfColor
 {
