@@ -11,14 +11,12 @@ use tsn\traits\GexfDates;
  */
 class GexfAttribute
 {
-    /** @var string For consistent value and option XML generation */
-    const DEFAULT_DELIMITER = ',';
 
     const TYPE_INTEGER = 'integer';
     const TYPE_LONG = 'long';
     const TYPE_DOUBLE = 'double';
     const TYPE_FLOAT = 'float';
-    /** @var string A "true" or "false" string for the boolean value */
+    /** @var string A 'true' or 'false' string for the boolean value */
     const TYPE_BOOLEAN = 'boolean';
     const TYPE_STRING = 'string';
     /**
@@ -43,45 +41,49 @@ class GexfAttribute
 
     use GexfDates;
 
+    /** @var string|int|null Default Value to use */
+    private $defaultValue = null;
     /** @var string */
-    private $id = "";
+    private $id = '';
     /** @var array */
     private $listStringOptions = [];
-    /** @var string|int|null Default ListString option to use */
-    private $listStringDefault = null;
+    /** @var string Set whether this is a static or dynamic attribute */
+    private $mode = Gexf::MODE_STATIC;
     /** @var string */
-    private $name = "";
+    private $name = '';
     /** @var string */
     private $type = self::TYPE_STRING;
     /** @var string */
-    private $value = "";
+    private $value = '';
 
     /**
      * GexfAttribute constructor.
      *
      * @param string $name
      * @param string $value
-     * @param string $type
+     * @param string $typeEnum The Data Type
+     * @param string $modeEnum Change to Dynamic to use start/end dates
      * @param string $startDate
      * @param string $endDate
      *
      * @throws \Exception
      */
-    public function __construct($name, $value, $type = self::TYPE_STRING, $startDate = null, $endDate = null)
+    public function __construct($name, $value, $typeEnum = self::TYPE_STRING, $modeEnum = Gexf::MODE_STATIC, $startDate = null, $endDate = null)
     {
         $this
             ->setName($name)
             ->setId()
-            ->setType($type)
+            ->setType($typeEnum)
             ->setValue($value)
-            ->setStartDate($startDate)
-            ->setEndDate($endDate);
+            ->setMode($modeEnum)
+            ->setStartEndDate($startDate, $endDate);
     }
 
     /**
      * @param array|string $options An array or delimited [, ; |] string
      *
      * @return \tsn\GexfAttribute
+     * @uses \tsn\GexfAttribute::processListStringOptions()
      */
     public function addListStringOptions($options)
     {
@@ -106,7 +108,15 @@ class GexfAttribute
         return $this
             ->setType(self::TYPE_LISTSTRING)
             ->addListStringOptions($options)
-            ->setListStringDefault($default);
+            ->setDefaultValue($default);
+    }
+
+    /**
+     * @return int|string|null
+     */
+    public function getDefaultValue()
+    {
+        return $this->defaultValue;
     }
 
     /**
@@ -118,11 +128,16 @@ class GexfAttribute
     }
 
     /**
-     * @return int|string|null
+     * For spooling into the <attvalues> element of <edge> and <node> elements
+     * @note These are keyed with start/end date taken into consideration
+     *       along with the ID, because the same attribute should overwrite,
+     *       but the same attribute with different value on different dates
+     *       should be appended
+     * @return string
      */
-    public function getListStringDefault()
+    public function getKey()
     {
-        return $this->listStringDefault;
+        return 'av-' . md5($this->getName() . '-s-' . $this->getStartDate() . '-e-' . $this->getEndDate());
     }
 
     /**
@@ -131,6 +146,14 @@ class GexfAttribute
     public function getListStringOptions()
     {
         return $this->listStringOptions;
+    }
+
+    /**
+     * @return string
+     */
+    public function getMode()
+    {
+        return $this->mode;
     }
 
     /**
@@ -163,7 +186,11 @@ class GexfAttribute
      */
     public function renderAttValue()
     {
-        return '<attvalue for="' . $this->getId() . '" value="' . $this->getValue() . '" ' . $this->renderStartEndDates() . '/>';
+        return '<attvalue ' . implode(' ', array_filter([
+                'for="' . $this->getId() . '"',
+                'value="' . $this->getValue() . '"',
+                $this->renderStartEndDates(),
+            ])) . '/>';
     }
 
     /**
@@ -172,40 +199,65 @@ class GexfAttribute
      */
     public function renderAttribute()
     {
-        return ($this->getType() == self::TYPE_LISTSTRING)
+        // Extract the Default tag, if one, to prevent self-closing element
+        $defaultXml = (!is_null($this->getDefaultValue())) ? '<default>' . $this->getDefaultValue() . '</default>' : null;
+
+        // Extract ListString Type, if set, to prevent self-closing element
+        $listStringOptions = ($this->getType() == self::TYPE_LISTSTRING) ? '<options>' . implode(Gexf::DEFAULT_DELIMITER, $this->getListStringOptions()) . '</options>' : null;
+
+        return ($defaultXml || $listStringOptions)
             ? implode(array_filter([
                 '<attribute id="' . $this->getId() . '" title="' . $this->getName() . '" type="' . $this->getType() . '">',
-                ($this->getListStringDefault()) ? '<default>' . $this->getListStringDefault() . '</default>' : null,
-                '<options>' . implode(self::DEFAULT_DELIMITER, $this->getListStringOptions()) . '</options>',
+                $defaultXml,
+                $listStringOptions,
                 '</attribute>',
             ]))
             : '<attribute id="' . $this->getId() . '" title="' . $this->getName() . '" type="' . $this->getType() . '"/>';
     }
 
     /**
-     * Sets the attribute ID to a hash of the name
+     * @param string|int|null $default
+     *
      * @return \tsn\GexfAttribute
+     * @throws \Exception
      */
-    public function setId()
+    public function setDefaultValue($default)
     {
-        $this->id = "a-" . md5($this->getName());
+        if (!is_null($default)) {
+            if ($this->getType() == self::TYPE_LISTSTRING && !in_array($default, $this->getListStringOptions())) {
+                throw new Exception('Default List String Value not available in Options: ' . $default);
+            }
+
+            $this->defaultValue = Gexf::cleanseString($default);
+        }
 
         return $this;
     }
 
     /**
-     * @param $default
+     * Sets the attribute ID to a hash of the name, start, and end date (as available)
+     * Because the same attribute can be pumped into the node more than once per date
+     * @return \tsn\GexfAttribute
+     */
+    public function setId()
+    {
+        $this->id = 'a-' . md5($this->getName());
+
+        return $this;
+    }
+
+    /**
+     * @param string $modeEnum Either Gexf::GEXF_MODE_STATIC or Gexf::GEXF_MODE_DYNAMIC
      *
      * @return \tsn\GexfAttribute
      * @throws \Exception
      */
-    public function setListStringDefault($default)
+    public function setMode($modeEnum)
     {
-        if (in_array($default, $this->getListStringOptions())) {
-            $this->listStringDefault = $default;
-
+        if (in_array($modeEnum, [Gexf::MODE_STATIC, Gexf::MODE_DYNAMIC])) {
+            $this->mode = $modeEnum;
         } else {
-            throw new Exception('Default List String Value not available in Options: ' . $default);
+            throw new Exception('Unsupported mode: ' . $modeEnum);
         }
 
         return $this;
@@ -241,14 +293,14 @@ class GexfAttribute
     }
 
     /**
-     * @param string $value
+     * @param mixed $value Array|String for ListString, Sting for everything else
      *
      * @return \tsn\GexfAttribute
      */
     public function setValue($value)
     {
         if ($this->getType() == self::TYPE_LISTSTRING) {
-            $value = implode(self::DEFAULT_DELIMITER, self::processListStringOptions($value));
+            $value = implode(Gexf::DEFAULT_DELIMITER, self::processListStringOptions($value));
         } else {
             $value = Gexf::cleanseString($value);
         }
@@ -288,6 +340,10 @@ class GexfAttribute
                 ? explode($delimiter, $options)
                 // No delimiter, so treat as single value
                 : [$options];
+
+            $options = array_map(function ($option) {
+                return trim($option);
+            }, $options);
         }
 
         return $options;

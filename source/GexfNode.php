@@ -26,11 +26,13 @@ class GexfNode
     /** @var float[] Coordinates: x, y, z (height, distance from 0-plane) */
     private $coords = [];
     /** @var string */
-    private $id = "";
+    private $id = '';
     /** @var string Only if shape='image */
     private $imageUrl = null;
     /** @var string */
-    private $name = "";
+    private $name = '';
+    /** @var string[] Array of parent GexfNode IDs */
+    private $parents = [];
     /** @var string */
     private $shape = 'disc';
     /** @var float A scale, non-negative float. 1.0 Default; 2.0 is 2x of 1.0 size. */
@@ -51,20 +53,36 @@ class GexfNode
      */
     public function __construct($name, $idPrefix = null, $startDate = null, $endDate = null)
     {
-        $this->setName($name);
-        $this->setId($idPrefix);
-        $this->setStartDate($startDate);
-        $this->setEndDate($endDate);
+        $this
+            ->setName($name)
+            ->setId($idPrefix)
+            ->setStartEndDate($startDate, $endDate);
     }
 
     /**
+     * Use this to indicate this node has children
+     *
      * @param \tsn\GexfNode $GexfNode
      *
      * @return \tsn\GexfNode
      */
     public function addChildNode(GexfNode $GexfNode)
     {
-        $this->children[$GexfNode->getId()] = $GexfNode;
+        $this->children[$GexfNode->getId()] = clone $GexfNode;
+
+        return $this;
+    }
+
+    /**
+     * Use this to indicate this node has parents
+     *
+     * @param \tsn\GexfNode $GexfNode
+     *
+     * @return $this
+     */
+    public function addParentNode(GexfNode $GexfNode)
+    {
+        $this->parents[$GexfNode->getId()] = $GexfNode->getId();
 
         return $this;
     }
@@ -112,6 +130,14 @@ class GexfNode
     }
 
     /**
+     * @return string[]
+     */
+    public function getParentNodes()
+    {
+        return $this->parents;
+    }
+
+    /**
      * @return string
      */
     public function getShape()
@@ -128,6 +154,16 @@ class GexfNode
     }
 
     /**
+     * @param \tsn\GexfNode $ParentGexfNode
+     *
+     * @return bool
+     */
+    public function parentExists(GexfNode $ParentGexfNode)
+    {
+        return array_key_exists($ParentGexfNode->getId(), $this->getParentNodes());
+    }
+
+    /**
      * @param \tsn\Gexf $Gexf
      *
      * @return string
@@ -135,13 +171,20 @@ class GexfNode
     public function renderNode(Gexf $Gexf)
     {
         return implode(array_filter([
-            '<node id="' . $this->getId() . '" label="' . $this->getName() . '" ' . $this->renderStartEndDates() . '>',
+            '<node ' . implode(' ', array_filter([
+                'id="' . $this->getId() . '"',
+                'label="' . $this->getName() . '"',
+                $this->renderStartEndDates(),
+                // If there is just 1 parent, toss it into a PID
+                (count($this->getParentNodes()) == 1) ? 'pid="' . reset($this->parents) . '"' : null,
+            ])) . '>',
             $this->renderColor(),
             ($this->getCoordinates()) ? '<viz:position x="' . $this->getCoordinates()['x'] . '" y="' . $this->getCoordinates()['y'] . '" z="' . $this->getCoordinates()['z'] . '"/>' : '',
             '<viz:size value="' . $this->getSize() . '"/>',
-            '<viz:shape value=' . $this->getShape() . '"/>',
+            '<viz:shape value="' . $this->getShape() . '"/>',
             $this->renderAttValues($Gexf),
             $this->renderSpells(),
+            $this->renderParents(),
             // Add this Node's Children: Recursive call to outer object inside of this one
             $Gexf->renderNodes($this->getChildNodes()),
             '</node>',
@@ -151,7 +194,7 @@ class GexfNode
     /**
      * @param float $x Left-right positioning
      * @param float $y Top-bottom positioning
-     * @param float $z Up-Down positioning: A "height" off the base XY-plane
+     * @param float $z Up-Down positioning: A 'height' off the base XY-plane
      *
      * @return \tsn\GexfNode
      */
@@ -217,5 +260,22 @@ class GexfNode
         $this->size = (float)$size;
 
         return $this;
+    }
+
+    /**
+     * Generate the <parents> and <parent> XML elements for the <node> element
+     * @return string
+     */
+    private function renderParents()
+    {
+        return (count($this->getParentNodes()) > 1)
+            ? implode([
+                '<parents>',
+                implode(array_filter(array_map(function ($parentNodeId) {
+                    return '<parent for="' . $parentNodeId . '"/>';
+                }, $this->getParentNodes()))),
+                '</parents>',
+            ])
+            : '';
     }
 }

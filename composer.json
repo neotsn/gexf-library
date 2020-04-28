@@ -15,9 +15,16 @@
       "tsn\\": "source/"
     }
   },
-  "repositories": {
-    "type": "vcs",
-    "url": "https://github.com/neotsn/gexf-library"
-  },
-  "require": {}
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/neotsn/gexf-library"
+    }
+  ],
+  "require": {},
+  "require-dev": {
+    "codeception/codeception": "^4.1",
+    "codeception/module-phpbrowser": "^1.0.0",
+    "codeception/module-asserts": "^1.0.0"
+  }
 }

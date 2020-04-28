@@ -27,8 +27,7 @@ class GexfSpell
     public function __construct($startDate, $endDate)
     {
         $this
-            ->setStartDate($startDate)
-            ->setEndDate($endDate)
+            ->setStartEndDate($startDate, $endDate)
             // After start/end defined
             ->setId();
     }
@@ -47,7 +46,7 @@ class GexfSpell
      */
     public function render()
     {
-        return '<spell' . $this->renderStartEndDates() . ' />';
+        return '<spell ' . $this->renderStartEndDates() . '/>';
     }
 
     /**

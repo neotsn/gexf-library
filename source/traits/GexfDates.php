@@ -33,27 +33,16 @@ trait GexfDates
     }
 
     /**
-     * @param string|int $endDate
+     * @param null|string|int $startDate
+     * @param null|string|int $endDate
      *
      * @return $this
      * @throws \Exception
      */
-    public function setEndDate($endDate)
+    public function setStartEndDate($startDate = null, $endDate = null)
     {
-        $this->endDate = $this->checkFormat($endDate);
-
-        return $this;
-    }
-
-    /**
-     * @param string|int $startDate
-     *
-     * @return $this
-     * @throws \Exception
-     */
-    public function setStartDate($startDate)
-    {
-        $this->startDate = $this->checkFormat($startDate);
+        $this->startDate = ($startDate) ? $this->checkFormat($startDate) : null;
+        $this->endDate = ($endDate) ? $this->checkFormat($endDate) : null;
 
         return $this;
     }
@@ -67,9 +56,9 @@ trait GexfDates
     private function checkFormat($date)
     {
         // Need a date value, and needs to be numeric or match the format
-        if ($date && !is_numeric($date) && !preg_match("/\d{4}-\d{2}-\d{2}/", $date)) {
+        if ($date && !is_numeric($date) && !preg_match('/\d{4}-\d{2}-\d{2}/', $date)) {
             // We have a date, but it's not numeric, and it doesn't match
-            throw new Exception("Time not in right format");
+            throw new Exception('Time not in right format');
         }
 
         return $date;
@@ -81,8 +70,8 @@ trait GexfDates
     private function renderStartEndDates()
     {
         return implode(' ', array_filter([
-            ($this->getStartDate() ? ' start="' . $this->getStartDate() . '"' : ''),
-            ($this->getEndDate() ? ' end="' . $this->getEndDate() . '"' : ''),
+            ($this->getStartDate() ? 'start="' . $this->getStartDate() . '"' : ''),
+            ($this->getEndDate() ? 'end="' . $this->getEndDate() . '"' : ''),
         ]));
     }
 }

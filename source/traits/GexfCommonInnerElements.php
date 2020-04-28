@@ -15,7 +15,7 @@ use tsn\GexfSpell;
  */
 trait GexfCommonInnerElements
 {
-    /** @var \tsn\GexfAttribute[] Keyed by Attribute ID */
+    /** @var \tsn\GexfAttribute[] These are keyed with ID+start+end date combined into a hash */
     private $attributes = [];
     /** @var \tsn\GexfSpell[] Keyed by Spell ID */
     private $spells = [];
@@ -27,7 +27,7 @@ trait GexfCommonInnerElements
      */
     public function addAttribute(GexfAttribute $GexfAttribute)
     {
-        $this->attributes[$GexfAttribute->getId()] = $GexfAttribute;
+        $this->attributes[$GexfAttribute->getKey()] = clone $GexfAttribute;
 
         return $this;
     }
@@ -39,24 +39,27 @@ trait GexfCommonInnerElements
      */
     public function addSpell(GexfSpell $GexfSpell)
     {
-        $this->spells[$GexfSpell->getId()] = $GexfSpell;
+        $this->spells[$GexfSpell->getId()] = clone $GexfSpell;
 
         return $this;
     }
 
     /**
-     * @param $attributeName
+     * @param string      $attributeName Used to calculate the Key for retrieval
+     * @param string|null $startDate     Used to calculate the Key for retrieval
+     * @param string|null $endDate       Used to calculate the Key for retrieval
      *
-     * @return bool|string
+     * @return mixed|null Mixed value if found, null if not
      * @throws \Exception
      */
-    public function getAttributeValue($attributeName)
+    public function getAttributeValue($attributeName, $startDate = null, $endDate = null)
     {
-        $fakeAttribute = new GexfAttribute($attributeName, '');
+        $fakeAttribute = (new GexfAttribute($attributeName, null))
+            ->setStartEndDate($startDate, $endDate);
 
-        return (isset($this->attributes[$fakeAttribute->getId()]))
-            ? $this->attributes[$fakeAttribute->getId()]->getValue()
-            : false;
+        return (isset($this->attributes[$fakeAttribute->getKey()]))
+            ? $this->attributes[$fakeAttribute->getKey()]->getValue()
+            : null;
     }
 
     /**
@@ -83,24 +86,26 @@ trait GexfCommonInnerElements
      *
      * @return array|string|string[]
      */
-    public function renderAttValues(Gexf &$Gexf)
+    private function renderAttValues(Gexf &$Gexf)
     {
-        return implode(array_filter([
-            '<attvalues>',
-            array_map(function ($GexfAttribute) use (&$Gexf) {
+        return (count($this->getAttributes()))
+            ? implode(array_filter([
+                '<attvalues>',
+                implode(array_map(function ($GexfAttribute) use (&$Gexf) {
 
-                if (is_a($this, GexfNode::class)) {
-                    // Add it to the list for later
-                    $Gexf->addNodeAttribute($GexfAttribute);
-                } else if (is_a($this, GexfEdge::class)) {
-                    $Gexf->addEdgeAttribute($GexfAttribute);
-                }
+                    if (is_a($this, GexfNode::class)) {
+                        // Add it to the list for later
+                        $Gexf->addNodeAttribute($GexfAttribute);
+                    } else if (is_a($this, GexfEdge::class)) {
+                        $Gexf->addEdgeAttribute($GexfAttribute);
+                    }
 
-                // Generate the XML it into the Edge
-                return $GexfAttribute->renderAttValue();
-            }, $this->getAttributes()),
-            '</attvalues>',
-        ]));
+                    // Generate the XML it into the Edge
+                    return $GexfAttribute->renderAttValue();
+                }, $this->getAttributes())),
+                '</attvalues>',
+            ]))
+            : '';
     }
 
     /**
@@ -108,7 +113,7 @@ trait GexfCommonInnerElements
      * Defines the times during which this Node lives.
      * @return string
      */
-    public function renderSpells()
+    private function renderSpells()
     {
         return (count($this->getSpells()))
             ? implode([

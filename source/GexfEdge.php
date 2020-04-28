@@ -62,14 +62,13 @@ class GexfEdge
      */
     public function __construct(GexfNode $sourceNode, GexfNode $targetNode, $weight, $edgeType, $startDate = null, $endDate = null)
     {
-        $this->setSourceId($sourceNode);
-        $this->setTargetId($targetNode);
-        $this->setWeight($weight);
-        $this->setType($edgeType);
-        $this->setId();
-
-        $this->setStartDate($startDate);
-        $this->setEndDate($endDate);
+        $this
+            ->setSourceId($sourceNode)
+            ->setTargetId($targetNode)
+            ->setWeight($weight)
+            ->setType($edgeType)
+            ->setId()
+            ->setStartEndDate($startDate, $endDate);
     }
 
     /**
@@ -168,6 +167,7 @@ class GexfEdge
                 'source="' . $this->getSourceId() . '"',
                 'target="' . $this->getTargetId() . '"',
                 'weight="' . $this->getWeight() . '"',
+                'type="' . $this->getType() . '"',
                 $this->renderStartEndDates(),
                 // Optional properties
                 ($this->getLabel()) ? 'label="' . $this->getLabel() . '"' : null,
@@ -175,7 +175,7 @@ class GexfEdge
             ])) . '>',
             $this->renderColor(),
             '<viz:thickness value="' . $this->getThickness() . '"/>',
-            '<viz:shape value="' . $this->getShape() . '"',
+            '<viz:shape value="' . $this->getShape() . '"/>',
             $this->renderAttValues($Gexf),
             $this->renderSpells(),
             '</edge>',
@@ -283,6 +283,9 @@ class GexfEdge
     public function setType($edgeType)
     {
         $this->edgeType = $edgeType;
+
+        // Directionality is taken into account with Type
+        $this->setId();
 
         return $this;
     }

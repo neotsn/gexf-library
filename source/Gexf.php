@@ -16,6 +16,8 @@ class Gexf
     const MODE_DYNAMIC = 'dynamic';
 
     const TIMEFORMAT_DATE = 'date';
+    /** @var string For consistent value and option XML generation */
+    const DEFAULT_DELIMITER = ',';
 
     use GexfDates;
 
@@ -42,7 +44,10 @@ class Gexf
     private $title = "";
 
     /** @var \tsn\GexfAttribute[] */
-    private $nodeAttributeObjects = [];
+    private $nodeAttributeObjects = [
+        self::MODE_STATIC  => [],
+        self::MODE_DYNAMIC => [],
+    ];
     /** @var \tsn\GexfAttribute[] */
     private $edgeAttributeObjects = [];
 
@@ -54,12 +59,14 @@ class Gexf
      * @param string $endDate
      *
      * @throws \Exception
+     * @uses \tsn\Gexf::setStartEndDate()
+     * @uses \tsn\Gexf::setTitle()
      */
     public function __construct($title, $startDate = null, $endDate = null)
     {
-        $this->setTitle($title);
-        $this->setStartDate($startDate);
-        $this->setEndDate($endDate);
+        $this
+            ->setTitle($title)
+            ->setStartEndDate($startDate, $endDate);
     }
 
     /**
@@ -76,13 +83,12 @@ class Gexf
      * @param \tsn\GexfEdge $GexfEdge
      *
      * @return string
-     * @throws \Exception
      */
     public function addEdge(GexfEdge $GexfEdge)
     {
         // if edge did not exist, add to list
         if (array_key_exists($GexfEdge->getId(), $this->edgeObjects) == false) {
-            $this->edgeObjects[$GexfEdge->getId()] = $GexfEdge;
+            $this->edgeObjects[$GexfEdge->getId()] = clone $GexfEdge;
         } else {
             // else add weight to existing edge
             $this->edgeObjects[$GexfEdge->getId()]->addToWeight($GexfEdge->getWeight());
@@ -92,39 +98,36 @@ class Gexf
     }
 
     /**
+     * @note This is Public, but are intended to be private, as they are only used in a Trait during render compilation
      * Add an Edge Attribute record
      *
      * @param \tsn\GexfAttribute $GexfAttribute
+     *
+     * @uses \tsn\Gexf::getEdgeAttributeObjects()
      */
     public function addEdgeAttribute(GexfAttribute $GexfAttribute)
     {
         if (array_key_exists($GexfAttribute->getId(), $this->getEdgeAttributeObjects()) === false) {
-            $this->edgeAttributeObjects[$GexfAttribute->getId()] = $GexfAttribute;
+            $this->edgeAttributeObjects[$GexfAttribute->getId()] = clone $GexfAttribute;
         }
-    }
-
-    /**
-     * @param \tsn\GexfEdge  $GexfEdge
-     * @param \tsn\GexfSpell $GexfSpell
-     */
-    public function addEdgeSpell(GexfEdge $GexfEdge, GexfSpell $GexfSpell)
-    {
-        if (array_key_exists($GexfEdge->getId(), $this->edgeObjects) == false) {
-            die('make an edge before you add a spell');
-        }
-        $this->edgeObjects[$GexfEdge->getId()]->addSpell($GexfSpell);
     }
 
     /**
      * Add Keywords into the array
      *
-     * @param $keywords
+     * @param string|string[] $keywords Array or CSV of keywords
+     *
+     * @return \tsn\Gexf
      */
     public function addKeywords($keywords)
     {
+        $keywords = (is_array($keywords)) ? $keywords : explode(self::DEFAULT_DELIMITER, $keywords);
+
         $this->keywords = array_unique(array_merge($this->keywords, array_filter(array_map(function ($word) {
             return trim(strtolower($word));
-        }, explode(',', $keywords)))));
+        }, $keywords))));
+
+        return $this;
     }
 
     /**
@@ -135,30 +138,34 @@ class Gexf
     public function addNode(GexfNode $GexfNode)
     {
         if (!$this->nodeExists($GexfNode)) {
-            $this->nodeObjects[$GexfNode->getId()] = $GexfNode;
+            $this->nodeObjects[$GexfNode->getId()] = clone $GexfNode;
         }
 
         return $GexfNode->getId();
     }
 
     /**
+     * @note This is Public, but are intended to be private, as they are only used in a Trait during render compilation
      * Add a Node Attribute record
      *
      * @param \tsn\GexfAttribute $GexfAttribute
+     *
+     * @throws \Exception
+     * @uses \tsn\Gexf::getNodeAttributeObjects()
      */
     public function addNodeAttribute(GexfAttribute $GexfAttribute)
     {
-        if (array_key_exists($GexfAttribute->getId(), $this->getNodeAttributeObjects()) === false) {
-            $this->nodeAttributeObjects[$GexfAttribute->getId()] = $GexfAttribute;
+        if (array_key_exists($GexfAttribute->getId(), $this->getNodeAttributeObjects($GexfAttribute->getMode())) === false) {
+            $this->nodeAttributeObjects[$GexfAttribute->getMode()][$GexfAttribute->getId()] = clone $GexfAttribute;
         }
     }
 
     /**
-     * @return \tsn\GexfAttribute[]
+     * @return string
      */
-    public function getEdgeAttributeObjects()
+    public function getDefaultEdgeType()
     {
-        return $this->edgeAttributeObjects;
+        return $this->edgeType;
     }
 
     /**
@@ -176,14 +183,6 @@ class Gexf
         }
 
         return $GexfNode;
-    }
-
-    /**
-     * @return \tsn\GexfAttribute[]
-     */
-    public function getNodeAttributeObjects()
-    {
-        return $this->nodeAttributeObjects;
     }
 
     /**
@@ -211,22 +210,21 @@ class Gexf
         $edgeAttributes = $this->renderEdgeAttributes();
 
         $this->gexfFile = chr(239) . chr(187) . chr(191) . '<?xml version="1.0" encoding="UTF-8"?>
-		<gexf xmlns="http://www.gexf.net/1.3draft"
-		    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		    xsi:schemaLocation="http://www.gexf.net/1.3draft http://www.gexf.net/1.3draft/gexf.xsd"
-		    version="1.3">
-			<meta lastmodifieddate="' . $this->lastModifiedDate . '">
-				<creator>' . $this->creator . '</creator>
-				<description>' . $this->title . '</description>
-				<keywords>' . implode(', ', $this->keywords) . '</keywords>
-			</meta>
-			<graph defaultedgetype="' . $this->edgeType . '" mode="' . $this->mode . '" ' . (!empty($this->timeformat) ? 'timeformat="' . $this->timeformat . '"' : '') . ' ' . $this->renderStartEndDates() . '>
-				' . $nodeAttributes . '
-				' . $edgeAttributes . '
-				' . $nodes . '
-				' . $edges . '
-			</graph>
-		</gexf>';
+<gexf xmlns="http://www.gexf.net/1.2draft" xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://gephi.org/gexf/1.2draft/gexf.xsd https://gephi.org/gexf/1.2draft/data.xsd https://gephi.org/gexf/1.2draft/dynamics.xsd https://gephi.org/gexf/1.2draft/hierarchy.xsd https://gephi.org/gexf/1.2draft/phylogenics.xsd https://gephi.org/gexf/1.2draft/viz.xsd" version="1.2">
+    <meta lastmodifieddate="' . $this->lastModifiedDate . '">' .
+            implode(array_filter([
+                ($this->creator) ? '<creator>' . $this->creator . '</creator>' : null,
+                ($this->title) ? '<description>' . $this->title . '</description>' : null,
+                ($this->keywords) ? '<keywords>' . implode(', ', $this->keywords) . '</keywords>' : null,
+            ])) . '</meta>
+    <graph ' . implode(' ', array_filter([
+                'defaultedgetype="' . $this->edgeType . '"',
+                'mode="' . $this->mode . '"',
+                (!empty($this->timeformat)) ? 'timeformat="' . $this->timeformat . '"' : null,
+                $this->renderStartEndDates(),
+            ]))
+            . '>' . implode(array_filter([$nodeAttributes, $edgeAttributes, $nodes, $edges])) . '</graph>
+</gexf>';
     }
 
     /**
@@ -236,13 +234,15 @@ class Gexf
      */
     public function renderNodes(array $nodeObjects)
     {
-        return implode([
-            '<nodes>',
-            implode(array_map(function (GexfNode $GexfNode) {
-                return $GexfNode->renderNode($this);
-            }, $nodeObjects)),
-            '</nodes>',
-        ]);
+        return (count($nodeObjects))
+            ? implode([
+                '<nodes>',
+                implode(array_map(function (GexfNode $GexfNode) {
+                    return $GexfNode->renderNode($this);
+                }, $nodeObjects)),
+                '</nodes>',
+            ])
+            : '';
 
     }
 
@@ -271,6 +271,19 @@ class Gexf
         } else {
             throw new Exception("Unsupported edge type: $edgeType");
         }
+
+        return $this;
+    }
+
+    /**
+     * @param $modifiedDate
+     *
+     * @return \tsn\Gexf
+     * @throws \Exception
+     */
+    public function setLastModifiedDate($modifiedDate)
+    {
+        $this->lastModifiedDate = $this->checkFormat($modifiedDate);
 
         return $this;
     }
@@ -322,6 +335,29 @@ class Gexf
     }
 
     /**
+     * @return \tsn\GexfAttribute[]
+     */
+    private function getEdgeAttributeObjects()
+    {
+        return $this->edgeAttributeObjects;
+    }
+
+    /**
+     * @param string $modeEnum One of Gexf::MODE_* Constants
+     *
+     * @return \tsn\GexfAttribute[]
+     * @throws \Exception
+     */
+    private function getNodeAttributeObjects($modeEnum)
+    {
+        if (in_array($modeEnum, [self::MODE_DYNAMIC, self::MODE_STATIC])) {
+            return $this->nodeAttributeObjects[$modeEnum];
+        } else {
+            throw new Exception('Invalid Mode provided: ' . $modeEnum);
+        }
+    }
+
+    /**
      * @return string
      */
     private function renderEdgeAttributes()
@@ -344,13 +380,15 @@ class Gexf
      */
     private function renderEdges($edgeObjects)
     {
-        return implode([
-            '<edges>',
-            implode(array_map(function (GexfEdge $GexfEdge) {
-                return $GexfEdge->renderEdge($this);
-            }, $edgeObjects)),
-            '</edges>',
-        ]);
+        return (count($edgeObjects))
+            ? implode([
+                '<edges>',
+                implode(array_map(function (GexfEdge $GexfEdge) {
+                    return $GexfEdge->renderEdge($this);
+                }, $edgeObjects)),
+                '</edges>',
+            ])
+            : '';
     }
 
     /**
@@ -358,14 +396,28 @@ class Gexf
      */
     private function renderNodeAttributes()
     {
-        return (count($this->nodeAttributeObjects))
-            ? implode([
-                '<attributes class="node">',
+        $output = [];
+
+        if (count($this->nodeAttributeObjects[self::MODE_STATIC])) {
+            $output[] = implode([
+                '<attributes class="node" mode="static">',
                 implode(array_map(function (GexfAttribute $GexfAttribute) {
                     return $GexfAttribute->renderAttribute();
-                }, $this->nodeAttributeObjects)),
+                }, $this->nodeAttributeObjects[self::MODE_STATIC])),
                 '</attributes>',
-            ])
-            : '';
+            ]);
+        }
+
+        if (count($this->nodeAttributeObjects[self::MODE_DYNAMIC])) {
+            $output[] = implode([
+                '<attributes class="node" mode="dynamic">',
+                implode(array_map(function (GexfAttribute $GexfAttribute) {
+                    return $GexfAttribute->renderAttribute();
+                }, $this->nodeAttributeObjects[self::MODE_DYNAMIC])),
+                '</attributes>',
+            ]);
+        }
+
+        return implode($output);
     }
 }
