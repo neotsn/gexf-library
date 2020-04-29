@@ -47,10 +47,6 @@ class GexfEdge
     private $thickness = 1.0;
     /** @var int */
     private $weight = 1;
-    /**
-     * @var null
-     */
-    private $forceId;
 
     /**
      * GexfEdge constructor.
@@ -74,7 +70,6 @@ class GexfEdge
             ->setType($edgeType)
             ->setId($forcedId)
             ->setStartEndDate($startDate, $endDate);
-        $this->forceId = $forcedId;
     }
 
     /**
