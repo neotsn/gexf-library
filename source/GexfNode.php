@@ -45,17 +45,17 @@ class GexfNode
      * GexfNode constructor.
      *
      * @param string          $name
-     * @param string|null     $idPrefix
+     * @param string|null     $forcedId
      * @param string|int|null $startDate
      * @param string|int|null $endDate
      *
      * @throws \Exception
      */
-    public function __construct($name, $idPrefix = null, $startDate = null, $endDate = null)
+    public function __construct($name, $forcedId = null, $startDate = null, $endDate = null)
     {
         $this
             ->setName($name)
-            ->setId($idPrefix)
+            ->setId($forcedId)
             ->setStartEndDate($startDate, $endDate);
     }
 
@@ -210,18 +210,6 @@ class GexfNode
     }
 
     /**
-     * @param string|null $idPrefix
-     *
-     * @return \tsn\GexfNode
-     */
-    public function setId($idPrefix = null)
-    {
-        $this->id = ((isset($idPrefix)) ? $idPrefix : 'n-') . md5($this->name);
-
-        return $this;
-    }
-
-    /**
      * @param string $name
      *
      * @return \tsn\GexfNode
@@ -277,5 +265,17 @@ class GexfNode
                 '</parents>',
             ])
             : '';
+    }
+
+    /**
+     * @param string|null $forcedId
+     *
+     * @return \tsn\GexfNode
+     */
+    private function setId($forcedId = null)
+    {
+        $this->id = (isset($forcedId)) ? Gexf::cleanseId($forcedId) : 'n-' . md5($this->name);
+
+        return $this;
     }
 }

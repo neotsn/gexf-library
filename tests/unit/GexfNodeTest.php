@@ -87,7 +87,7 @@ class GexfNodeTest extends Unit
     {
         // These were all set in the constructor
         $this->tester->assertNotEmpty($this->GexfNode->getId());
-        $this->tester->assertStringStartsWith('neo-', $this->GexfNode->getId());
+        $this->tester->assertEquals('neo', $this->GexfNode->getId());
         $this->tester->assertEquals('testNode', $this->GexfNode->getName());
         $this->tester->assertEquals('2020-03-16', $this->GexfNode->getStartDate());
         $this->tester->assertEquals('2020-04-30', $this->GexfNode->getEndDate());
@@ -132,6 +132,6 @@ class GexfNodeTest extends Unit
     {
         // Start Date when I started COVID-19 Quarantine :(
         // End Date is the last "official" stay-at-home date... but I'm still gonna stay at home.
-        $this->GexfNode = new GexfNode('testNode', 'neo-', '2020-03-16', '2020-04-30');
+        $this->GexfNode = new GexfNode('testNode', 'neo', '2020-03-16', '2020-04-30');
     }
 }
