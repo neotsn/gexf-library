@@ -62,7 +62,7 @@ class GexfAttributeTest extends Unit
     public function testProperties()
     {
         $this->tester->assertEquals('testAttribute', $this->GexfAttribute->getName());
-        $this->tester->assertStringStartsWith('a-', $this->GexfAttribute->getId());
+        $this->tester->assertEquals('attributeId', $this->GexfAttribute->getId());
         $this->tester->assertEquals(1.1, $this->GexfAttribute->getValue());
         $this->tester->assertEquals(GexfAttribute::TYPE_FLOAT, $this->GexfAttribute->getType());
         $this->tester->assertEquals(Gexf::MODE_DYNAMIC, $this->GexfAttribute->getMode());
@@ -86,6 +86,6 @@ class GexfAttributeTest extends Unit
 
     protected function _before()
     {
-        $this->GexfAttribute = new GexfAttribute('testAttribute', 1.1, GexfAttribute::TYPE_FLOAT, Gexf::MODE_DYNAMIC, '2020-03-16', '2020-04-30');
+        $this->GexfAttribute = new GexfAttribute('testAttribute', 1.1, GexfAttribute::TYPE_FLOAT, 'attributeId', Gexf::MODE_DYNAMIC, '2020-03-16', '2020-04-30');
     }
 }

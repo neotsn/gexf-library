@@ -70,6 +70,19 @@ class Gexf
     }
 
     /**
+     * Swap spaces for underscores
+     * Swap everything that is non-alphnumeric/underscore out.
+     *
+     * @param $string
+     *
+     * @return string|string[]|null
+     */
+    public static function cleanseId($string)
+    {
+        return preg_replace('/\W/', '', preg_replace('/\s+/', '_', (string)$string));
+    }
+
+    /**
      * @param string $string
      *
      * @return string

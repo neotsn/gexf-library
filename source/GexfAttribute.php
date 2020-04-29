@@ -59,20 +59,21 @@ class GexfAttribute
     /**
      * GexfAttribute constructor.
      *
-     * @param string $name
-     * @param string $value
-     * @param string $typeEnum The Data Type
-     * @param string $modeEnum Change to Dynamic to use start/end dates
-     * @param string $startDate
-     * @param string $endDate
+     * @param string      $name
+     * @param string      $value
+     * @param string      $typeEnum The Data Type
+     * @param string|null $forcedId Explicitly define this object's ID; use `null` to auto-generate
+     * @param string      $modeEnum Change to Dynamic to use start/end dates
+     * @param string      $startDate
+     * @param string      $endDate
      *
      * @throws \Exception
      */
-    public function __construct($name, $value, $typeEnum = self::TYPE_STRING, $modeEnum = Gexf::MODE_STATIC, $startDate = null, $endDate = null)
+    public function __construct($name, $value, $typeEnum = self::TYPE_STRING, $forcedId = null, $modeEnum = Gexf::MODE_STATIC, $startDate = null, $endDate = null)
     {
         $this
             ->setName($name)
-            ->setId()
+            ->setId($forcedId)
             ->setType($typeEnum)
             ->setValue($value)
             ->setMode($modeEnum)
@@ -235,18 +236,6 @@ class GexfAttribute
     }
 
     /**
-     * Sets the attribute ID to a hash of the name, start, and end date (as available)
-     * Because the same attribute can be pumped into the node more than once per date
-     * @return \tsn\GexfAttribute
-     */
-    public function setId()
-    {
-        $this->id = 'a-' . md5($this->getName());
-
-        return $this;
-    }
-
-    /**
      * @param string $modeEnum Either Gexf::GEXF_MODE_STATIC or Gexf::GEXF_MODE_DYNAMIC
      *
      * @return \tsn\GexfAttribute
@@ -347,5 +336,20 @@ class GexfAttribute
         }
 
         return $options;
+    }
+
+    /**
+     * Sets the attribute ID to a hash of the name, start, and end date (as available)
+     * Because the same attribute can be pumped into the node more than once per date
+     *
+     * @param string|null $forcedId Explicitly define this object's ID; use `null` to auto-generate
+     *
+     * @return \tsn\GexfAttribute
+     */
+    private function setId($forcedId = null)
+    {
+        $this->id = (isset($forcedId)) ? $forcedId : 'a-' . md5($this->getName());
+
+        return $this;
     }
 }

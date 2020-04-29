@@ -55,19 +55,20 @@ class GexfEdge
      * @param \tsn\GexfNode $targetNode
      * @param int           $weight
      * @param string        $edgeType
+     * @param string|null   $forcedId Explicitly define this object's ID; use `null` to auto-generate
      * @param null          $startDate
      * @param null          $endDate
      *
      * @throws \Exception
      */
-    public function __construct(GexfNode $sourceNode, GexfNode $targetNode, $weight, $edgeType, $startDate = null, $endDate = null)
+    public function __construct(GexfNode $sourceNode, GexfNode $targetNode, $weight, $edgeType, $forcedId = null, $startDate = null, $endDate = null)
     {
         $this
             ->setSourceId($sourceNode)
             ->setTargetId($targetNode)
             ->setWeight($weight)
             ->setType($edgeType)
-            ->setId()
+            ->setId($forcedId)
             ->setStartEndDate($startDate, $endDate);
     }
 
@@ -183,22 +184,6 @@ class GexfEdge
     }
 
     /**
-     * Set the edge ID based on the node ids and the type
-     * @return \tsn\GexfEdge
-     */
-    public function setId()
-    {
-        $sort = [$this->getSourceId(), $this->getTargetId()];
-        if ($this->getType() == GexfEdge::TYPE_UNDIRECTED) {
-            // if undirected all concatenations need to be result in same id
-            sort($sort);
-        }
-        $this->id = 'e-' . implode('', $sort);
-
-        return $this;
-    }
-
-    /**
      * @param $kind
      *
      * @return \tsn\GexfEdge
@@ -298,6 +283,31 @@ class GexfEdge
     public function setWeight($weight)
     {
         $this->weight = $weight;
+
+        return $this;
+    }
+
+    /**
+     * Set the edge ID based on the node ids and the type
+     *
+     * @param string|null $forcedId Explicitly define this object's ID; use `null` to auto-generate
+     *
+     * @return \tsn\GexfEdge
+     */
+    private function setId($forcedId = null)
+    {
+        if (isset($forcedId)) {
+            $this->id = Gexf::cleanseId($forcedId);
+        } else {
+
+            $sort = [$this->getSourceId(), $this->getTargetId()];
+
+            if ($this->getType() == GexfEdge::TYPE_UNDIRECTED) {
+                // if undirected all concatenations need to be result in same id
+                sort($sort);
+            }
+            $this->id = 'e-' . implode('-', $sort);
+        }
 
         return $this;
     }
