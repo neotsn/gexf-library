@@ -295,7 +295,7 @@ class GexfEdge
     /**
      * Set the edge ID based on the node ids and the type
      *
-     * @param string|null $forcedId Force-set the ID to a specific value, or null to generate one
+     * @param string|null $forcedId Explicitly define this object's ID; use `null` to auto-generate
      *
      * @return \tsn\GexfEdge
      */

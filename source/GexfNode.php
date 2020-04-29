@@ -268,7 +268,7 @@ class GexfNode
     }
 
     /**
-     * @param string|null $forcedId
+     * @param string|null $forcedId Explicitly define this object's ID; use `null` to auto-generate
      *
      * @return \tsn\GexfNode
      */
