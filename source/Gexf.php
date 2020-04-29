@@ -210,7 +210,7 @@ class Gexf
         $edgeAttributes = $this->renderEdgeAttributes();
 
         $this->gexfFile = '<?xml version="1.0" encoding="UTF-8"?>
-<gexf xmlns="http://www.gexf.net/1.2draft" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd" version="1.2">
+<gexf xmlns="http://www.gexf.net/1.2draft" xmlns:viz="http://www.gexf.net/1.2draft/viz" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd" version="1.2">
     <meta lastmodifieddate="' . $this->lastModifiedDate . '">' .
             implode(array_filter([
                 ($this->creator) ? '<creator>' . $this->creator . '</creator>' : null,
