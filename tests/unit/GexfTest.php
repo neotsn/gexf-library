@@ -185,6 +185,7 @@ class GexfTest extends Unit
 
         // Test getting wrong type of Node Attribute Objects
         $this->tester->expectThrowable(Exception::class, function () {
+            /** @uses \tsn\Gexf::getNodeAttributeObjects() */
             $this->getModule('Helpers\Unit')->invokeMethod($this->Gexf, 'getNodeAttributeObjects', ['unbound']);
         });
 
@@ -202,13 +203,13 @@ class GexfTest extends Unit
 
         $node0 = (new GexfNode('Hello'))
             ->setCoordinates(15.783598, 40.109245, 3.4)
-            ->setColor('#003366', 0.9)
+            ->setColor(0, 51, 102, 0.9)
             ->setSize(1.5)
             ->setShape(GexfNode::SHAPE_TRIANGLE);
         $node1 = (new GexfNode('World'));
 
         $edge0 = (new GexfEdge($node0, $node1, 1, $this->Gexf->getDefaultEdgeType()))
-            ->setColor('587eaa', 1.0)
+            ->setColor(88, 126, 170, 1.0)
             ->setThickness(3.2)
             ->setShape(GexfEdge::SHAPE_DOTTED);
 
@@ -293,7 +294,7 @@ class GexfTest extends Unit
         return '<?xml version="1.0" encoding="UTF-8"?>
 <gexf xmlns="http://www.gexf.net/1.2draft" xmlns:viz="http://www.gexf.net/1.2draft/viz" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd" version="1.2">
     <meta lastmodifieddate="2009-03-20"><creator>Gephi.org</creator><description>A hello world! file</description></meta>
-    <graph defaultedgetype="directed" mode="static" timeformat="date"><nodes><node id="n-8b1a9953c4611296a827abf8c47804d7" label="Hello"><viz:color hex="003366" a="0.9"/><viz:position x="15.783598" y="40.109245" z="3.4"/><viz:size value="1.5"/><viz:shape value="triangle"/></node><node id="n-f5a7924e621e84c9280a9a27e1bcb7f6" label="World"><viz:size value="1"/><viz:shape value="disc"/></node></nodes><edges><edge id="e-n-8b1a9953c4611296a827abf8c47804d7n-f5a7924e621e84c9280a9a27e1bcb7f6" source="n-8b1a9953c4611296a827abf8c47804d7" target="n-f5a7924e621e84c9280a9a27e1bcb7f6" weight="2" type="directed"><viz:color hex="587eaa" a="1"/><viz:thickness value="3.2"/><viz:shape value="dotted"/></edge></edges></graph>
+    <graph defaultedgetype="directed" mode="static" timeformat="date"><nodes><node id="n-8b1a9953c4611296a827abf8c47804d7" label="Hello"><viz:color r="0" g="51" b="102" a="0.9"/><viz:position x="15.783598" y="40.109245" z="3.4"/><viz:size value="1.5"/><viz:shape value="triangle"/></node><node id="n-f5a7924e621e84c9280a9a27e1bcb7f6" label="World"><viz:size value="1"/><viz:shape value="disc"/></node></nodes><edges><edge id="e-n-8b1a9953c4611296a827abf8c47804d7n-f5a7924e621e84c9280a9a27e1bcb7f6" source="n-8b1a9953c4611296a827abf8c47804d7" target="n-f5a7924e621e84c9280a9a27e1bcb7f6" weight="2" type="directed"><viz:color r="88" g="126" b="170" a="1"/><viz:thickness value="3.2"/><viz:shape value="dotted"/></edge></edges></graph>
 </gexf>';
     }
 }
