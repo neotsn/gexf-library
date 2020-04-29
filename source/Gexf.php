@@ -209,8 +209,8 @@ class Gexf
         $nodeAttributes = $this->renderNodeAttributes();
         $edgeAttributes = $this->renderEdgeAttributes();
 
-        $this->gexfFile = chr(239) . chr(187) . chr(191) . '<?xml version="1.0" encoding="UTF-8"?>
-<gexf xmlns="http://www.gexf.net/1.2draft" xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://gephi.org/gexf/1.2draft/gexf.xsd https://gephi.org/gexf/1.2draft/data.xsd https://gephi.org/gexf/1.2draft/dynamics.xsd https://gephi.org/gexf/1.2draft/hierarchy.xsd https://gephi.org/gexf/1.2draft/phylogenics.xsd https://gephi.org/gexf/1.2draft/viz.xsd" version="1.2">
+        $this->gexfFile = '<?xml version="1.0" encoding="UTF-8"?>
+<gexf xmlns="http://www.gexf.net/1.2draft" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd" version="1.2">
     <meta lastmodifieddate="' . $this->lastModifiedDate . '">' .
             implode(array_filter([
                 ($this->creator) ? '<creator>' . $this->creator . '</creator>' : null,
