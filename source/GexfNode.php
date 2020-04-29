@@ -45,7 +45,7 @@ class GexfNode
      * GexfNode constructor.
      *
      * @param string          $name
-     * @param string|null     $forcedId
+     * @param string|null     $forcedId Explicitly define this object's ID; use `null` to auto-generate
      * @param string|int|null $startDate
      * @param string|int|null $endDate
      *

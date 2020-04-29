@@ -59,7 +59,7 @@ class GexfEdge
      * @param \tsn\GexfNode $targetNode
      * @param int           $weight
      * @param string        $edgeType
-     * @param null          $forcedId
+     * @param string|null   $forcedId Explicitly define this object's ID; use `null` to auto-generate
      * @param null          $startDate
      * @param null          $endDate
      *
