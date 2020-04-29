@@ -259,9 +259,9 @@ class GexfNode
         return (count($this->getParentNodes()) > 1)
             ? implode([
                 '<parents>',
-                implode(array_filter(array_map(function ($parentNodeId) {
+                implode(array_map(function ($parentNodeId) {
                     return '<parent for="' . $parentNodeId . '"/>';
-                }, $this->getParentNodes()))),
+                }, $this->getParentNodes())),
                 '</parents>',
             ])
             : '';

@@ -335,7 +335,7 @@ class GexfAttribute
             }, $options);
         }
 
-        return $options;
+        return array_values($options);
     }
 
     /**
@@ -348,7 +348,7 @@ class GexfAttribute
      */
     private function setId($forcedId = null)
     {
-        $this->id = (isset($forcedId)) ? $forcedId : 'a-' . md5($this->getName());
+        $this->id = (isset($forcedId)) ? Gexf::cleanseId($forcedId) : 'a-' . md5($this->getName());
 
         return $this;
     }

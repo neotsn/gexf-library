@@ -91,7 +91,7 @@ trait GexfCommonInnerElements
         return (count($this->getAttributes()))
             ? implode(array_filter([
                 '<attvalues>',
-                implode(array_map(function ($GexfAttribute) use (&$Gexf) {
+                implode(array_map(function (GexfAttribute $GexfAttribute) use (&$Gexf) {
 
                     if (is_a($this, GexfNode::class)) {
                         // Add it to the list for later
