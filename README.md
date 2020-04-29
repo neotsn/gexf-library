@@ -1,5 +1,7 @@
 # gexf-library
-A Gexf PHP Library.
+A GEXF PHP Library.
+
+![](https://github.com/neotsn/gexf-library/workflows/build/badge.svg)
 
 # Note
 This is still under development, and probably not ready for prime-time yet, but Tests are in place @ 100% coverage as of v0.4.0 to just prove that what is set, is what is returned. Implementation of this library for practical purposes may cause more changes before v1.0.0 is released. 
