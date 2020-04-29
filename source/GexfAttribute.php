@@ -335,7 +335,7 @@ class GexfAttribute
             }, $options);
         }
 
-        return $options;
+        return array_values($options);
     }
 
     /**
