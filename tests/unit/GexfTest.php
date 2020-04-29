@@ -94,7 +94,7 @@ class GexfTest extends Unit
             ->setDefaultValue('true');
 
         // Dynamic Attribute
-        $indegreeAttribute = (new GexfAttribute('indegree', null, GexfAttribute::TYPE_FLOAT, Gexf::MODE_DYNAMIC));
+        $indegreeAttribute = (new GexfAttribute('indegree', null, GexfAttribute::TYPE_FLOAT, null, Gexf::MODE_DYNAMIC));
 
         $node0a = (new GexfNode('ThePizzy.net', null, '2003-03-21'))
             ->addAttribute($urlAttribute->setValue('https://thepizzy.net'))
