@@ -210,6 +210,7 @@ class Gexf
 
     /**
      * Prepare and store the XML string
+     * @throws \Exception
      */
     public function render()
     {
@@ -375,12 +376,12 @@ class Gexf
      */
     private function renderEdgeAttributes()
     {
-        return (count($this->edgeAttributeObjects))
+        return ($this->getEdgeAttributeObjects())
             ? implode([
                 '<attributes class="edge">',
-                implode(array_map(function ($GexfAttribute) {
+                implode(array_map(function (GexfAttribute $GexfAttribute) {
                     return $GexfAttribute->renderAttribute();
-                }, $this->edgeAttributeObjects)),
+                }, $this->getEdgeAttributeObjects())),
                 '</attributes>',
             ])
             : '';
@@ -406,27 +407,28 @@ class Gexf
 
     /**
      * @return string
+     * @throws \Exception
      */
     private function renderNodeAttributes()
     {
         $output = [];
 
-        if (count($this->nodeAttributeObjects[self::MODE_STATIC])) {
+        if (count($this->getNodeAttributeObjects(self::MODE_STATIC))) {
             $output[] = implode([
                 '<attributes class="node" mode="static">',
                 implode(array_map(function (GexfAttribute $GexfAttribute) {
                     return $GexfAttribute->renderAttribute();
-                }, $this->nodeAttributeObjects[self::MODE_STATIC])),
+                }, $this->getNodeAttributeObjects(self::MODE_STATIC))),
                 '</attributes>',
             ]);
         }
 
-        if (count($this->nodeAttributeObjects[self::MODE_DYNAMIC])) {
+        if (count($this->getNodeAttributeObjects(self::MODE_DYNAMIC))) {
             $output[] = implode([
                 '<attributes class="node" mode="dynamic">',
                 implode(array_map(function (GexfAttribute $GexfAttribute) {
                     return $GexfAttribute->renderAttribute();
-                }, $this->nodeAttributeObjects[self::MODE_DYNAMIC])),
+                }, $this->getNodeAttributeObjects(self::MODE_DYNAMIC))),
                 '</attributes>',
             ]);
         }
