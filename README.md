@@ -10,9 +10,6 @@ A GEXF PHP Library.
 ![GitHub repo size](https://img.shields.io/github/repo-size/neotsn/gexf-library?logo=github)
 ![Twitter URL](https://img.shields.io/twitter/follow/neotsn)
 
-# Note
-This is still under development, and probably not ready for prime-time yet, but Tests are in place @ 100% coverage as of v0.4.0 to just prove that what is set, is what is returned. Implementation of this library for practical purposes may cause more changes before v1.0.0 is released. 
-
 ## Description
 This was created out of necessity to product Node-Maps in the GEXF format for my day-job at [FireScope](https://www.firescope.com). It's a spare-time repository, so any bugs will be addressed as time allows. And I am no expert on GEXF, so the technical support that I can offer is limited. 
 
